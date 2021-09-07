@@ -21,5 +21,9 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
+    - uses: borales/actions-yarn@v2.3.0
+      with:
+        cache: 'yarn'
+
+    - run: yarn install
     - run: npm test
