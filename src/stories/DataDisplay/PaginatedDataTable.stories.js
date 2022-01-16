@@ -1,6 +1,6 @@
 import React from 'react';
 
-import PaginatedDataTable from '../../sharedcomponents/PaginatedDataTable';
+import PaginatedDataTable from '../../components/DataDisplay/PaginatedDataTable';
 
 const sampleCredentials = [
   {
@@ -232,7 +232,7 @@ const sampleCredentialsTableConfig = {
 };
 
 export default {
-  title: 'Shared Components/PaginatedDataTable',
+  title: 'Data Display/PaginatedDataTable',
   component: PaginatedDataTable,
   argTypes: {
     updateConfig: { action: 'updateConfig' },
