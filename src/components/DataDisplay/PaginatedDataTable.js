@@ -10,13 +10,45 @@ import {
   TableRow,
   TablePagination,
   Paper,
+  LinearProgress,
 } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 
-/**
- * Primary UI component for user interaction
- */
-export const PaginatedDataTable = ({ data, dataConfig, rowsPerPage, page, count, updateConfig, onRowClick, dense = false }) => {
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
+import Skeleton from '@material-ui/lab/Skeleton';
+
+const useStyles = makeStyles((theme) => ({
+  loadingRow: {
+    padding: 0,
+  },
+  errorRow: {
+    padding: 0,
+    height: 350,
+  },
+  errorIcon: {
+    margin: 'auto',
+    display: 'block',
+    color: theme.palette.error.main,
+  }
+}));
+
+export const PaginatedDataTable = (
+  {
+    data = [],
+    dataConfig,
+    rowsPerPage,
+    page,
+    totalRows,
+    loading = false,
+    error = false,
+    updateConfig,
+    dense = false,
+  }
+) => {
+  const styles = useStyles();
   const { fields, pagination } = dataConfig;
+
+  console.log(data, loading);
 
   return (
     <TableContainer component={Paper}>
@@ -27,6 +59,7 @@ export const PaginatedDataTable = ({ data, dataConfig, rowsPerPage, page, count,
               <TableCell
                 key={idx}
                 align={field.align || "right"}
+                style={{borderBottom: 'none'}}
               >
                 {field.label}
               </TableCell>
@@ -34,32 +67,65 @@ export const PaginatedDataTable = ({ data, dataConfig, rowsPerPage, page, count,
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((row, idx) => (
-            <TableRow
-              key={idx}
-              hover
-              onClick={(e) => onRowClick(e, row)}
-            >
-              {fields.map((field, idx) => (
-                <TableCell
-                  key={idx}
-                  align={field.align || "right"}
-                >
-                  {row[field.fieldName]}
-                </TableCell>
-              ))}
+          {error ?
+            <TableRow>
+              <TableCell colSpan={fields.length} className={styles.errorRow}>
+                <ErrorOutlineIcon fontSize={'large'} colSpan={3} className={styles.errorIcon} />
+              </TableCell>
             </TableRow>
-          ))}
-          <TableRow>
-            <TablePagination
-              rowsPerPageOptions={pagination.rowsPerPageOptions}
-              count={count || data.length}
-              rowsPerPage={rowsPerPage || pagination.defaultRowsPerPage}
-              page={page || 0}
-              onPageChange={(e, p) => updateConfig({ page: p })}
-              onRowsPerPageChange={(e) => updateConfig({ rowsPerPage: e.target.value })}
-            />
-          </TableRow>
+            :
+            <>
+              <TableRow>
+                <TableCell colSpan={fields.length} className={styles.loadingRow}>
+                  {loading ?
+                    <LinearProgress colSpan="3" /> :
+                    <div style={{ height: 4 }} colSpan={3} />
+                  }
+                </TableCell>
+              </TableRow>
+              {loading && (!data || data.length === 0) &&
+                Array(rowsPerPage || pagination.defaultRowsPerPage).fill(Array(dataConfig.fields.length).fill('')).map((columns, idx) =>
+                  <TableRow key={idx}>
+                    {columns.map((col, idx) => 
+                      <TableCell key={idx}>
+                        <Skeleton />
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              }
+              {data &&
+                <>
+                  {data.map((row, idx) => (
+                    <TableRow
+                      key={idx}
+                      hover
+                      {...row.rowProps}
+                    >
+                      {fields.map((field, idx) => (
+                        <TableCell
+                          key={idx}
+                          align={field.align || "right"}
+                        >
+                          {row[field.fieldName]}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TablePagination
+                      rowsPerPageOptions={pagination.rowsPerPageOptions}
+                      count={totalRows || data?.length}
+                      rowsPerPage={rowsPerPage || pagination.defaultRowsPerPage}
+                      page={page || 0}
+                      onPageChange={(e, p) => updateConfig({ page: p })}
+                      onRowsPerPageChange={(e) => updateConfig({ rowsPerPage: e.target.value })}
+                    />
+                  </TableRow>
+                </>
+              }
+            </>
+          }
         </TableBody>
       </Table>
     </TableContainer>
@@ -80,15 +146,19 @@ PaginatedDataTable.propTypes = {
   }).isRequired,
   rowsPerPage: PropTypes.number,
   page: PropTypes.number,
-  count: PropTypes.number,
+  totalRows: PropTypes.number,
   updateConfig: PropTypes.func.isRequired,
-  dense: PropTypes.bool
+  dense: PropTypes.bool,
+  loading: PropTypes.bool,
+  error: PropTypes.bool,
 };
 
 PaginatedDataTable.defaultProps = {
   data: [],
   updateConfig: () => { },
   dense: false,
+  loading: false,
+  error: false,
 };
 
 export default PaginatedDataTable;
