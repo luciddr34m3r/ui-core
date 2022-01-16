@@ -8,7 +8,7 @@ on: push
 
 # List of jobs
 jobs:
-  Publish-to-Chromatic:
+  "Publish to Chromatic":
     # Operating System
     runs-on: ubuntu-latest
     # Job steps
